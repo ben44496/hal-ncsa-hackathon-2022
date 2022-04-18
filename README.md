@@ -1,1 +1,0 @@
-# hal-ncsa-hackathon-2022
