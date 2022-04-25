@@ -22,11 +22,13 @@ def get_X_names():
     gas.close()
     return feature_names
     
-def get_data(x_features, y_features):
-    ncf = Dataset("data/training.nc", "r", format="NETCDF4")
+def get_data(x_features, y_features,datapath):
+    ncf = Dataset(datapath, "r", format="NETCDF4")
     resizer = torchvision.transforms.Resize((157, 157))
     
-    X = torch.empty(len(x_features), 133, 39, 157, 157)
+    N = ncf.variables['ccn_001'].shape[0]
+    
+    X = torch.empty(len(x_features), N, 39, 157, 157)
     for i,name in enumerate(x_features):
         data = ncf.variables[name]
         data = torch.from_numpy(np.array(data))
@@ -38,7 +40,7 @@ def get_data(x_features, y_features):
         X[i] = data
     X = torch.permute(X, (1, 0, 2,3,4))
     
-    Y = torch.empty(len(y_features),133,39,157,157)
+    Y = torch.empty(len(y_features),N,39,157,157)
     y_means = torch.empty(len(y_features),39,157,157)
     y_stds = torch.empty(len(y_features),39,157,157)
     for i,name in enumerate(y_features):
