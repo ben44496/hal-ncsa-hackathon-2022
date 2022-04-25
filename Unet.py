@@ -6,16 +6,16 @@ import numpy as np
 import horovod.torch as hvd
 from data import get_data,get_X_names
 from unet.unet import *
+import argparse
 
-# from pytorch_model_summary import summary
+parser = argparse.ArgumentParser(description="UNet Hal Hackathon 2022")
+parser.add_argument('--batch-size', type=int, default=3, metavar='N',
+                    help='input batch size for training (default: 3)')
 
+args = parser.parse_args()
+BATCH_SIZE = args.batch_size
 
-# In[11]:
-
-
-# ### COPY THIS
-
-# In[5]:
+print("Batch size:", BATCH_SIZE)
 
 print("Loading data")
 x_names = get_X_names()
@@ -23,13 +23,11 @@ x_names = x_names[3:8] + x_names[25:30]
 # X,Y,ymu,ystd = get_data(x_names[:10],['ccn_001','ccn_003'])
 X = torch.load('data/trainX')
 Y = torch.load('data/trainY')
-test_X = torch.load('data/testX')
-test_Y = torch.load('data/testY')
+# test_X = torch.load('data/testX')
+# test_Y = torch.load('data/testY')
 
 dataset = torch.utils.data.TensorDataset(X,Y)
 print("Done Loading")
-
-# In[ ]:
 
 # Initialize Horovod
 hvd.init()
@@ -44,7 +42,7 @@ train_dataset = dataset
 train_sampler = torch.utils.data.distributed.DistributedSampler(
     train_dataset, num_replicas=hvd.size(), rank=hvd.rank())
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=3, sampler=train_sampler)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, sampler=train_sampler)
 
 # Matty's del
 del X
@@ -68,7 +66,7 @@ losses = []
 validation_losses = []
 
 torch.cuda.empty_cache()
-for epoch in range(51):
+for epoch in range(101):
     print("epoch ", epoch)
     train_loss = 0 
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -94,7 +92,7 @@ for epoch in range(51):
         
     # Save model every 10 epochs
     if epoch % 1 == 0:
-        torch.save(model.state_dict(),'checkpoints/detector_epoch_%d.pth' % (epoch))
+        torch.save(model.state_dict(),'checkpoints/unet_epoch_%d.pth' % (epoch))
         
 #         rand_sample = torch.randint(0, 11, (1,)) # 0-11 test samples index
 #         val_x = test_X[rand_sample].cuda()
@@ -115,4 +113,6 @@ for epoch in range(51):
     
     print("Loss ",train_loss)
     losses.append(train_loss)
+    
+torch.save(model.state_dict(),'checkpoints/unet_final.pth')
 
