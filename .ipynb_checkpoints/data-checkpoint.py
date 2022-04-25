@@ -27,7 +27,7 @@ def get_data(x_features, y_features,datapath):
     resizer = torchvision.transforms.Resize((157, 157))
     
     N = ncf.variables['ccn_001'].shape[0]
-    
+    print(f"Has {N} samples")
     X = torch.empty(len(x_features), N, 39, 157, 157)
     for i,name in enumerate(x_features):
         data = ncf.variables[name]

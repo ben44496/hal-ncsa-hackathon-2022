@@ -57,6 +57,7 @@ optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_par
 hvd.broadcast_parameters(model.state_dict(), root_rank=0)
 loss_fn = nn.MSELoss()
 model.train()
+losses = []
 for epoch in range(100):
     print("epoch ", epoch)
     train_loss = 0 
@@ -69,3 +70,4 @@ for epoch in range(100):
         train_loss += loss.item()
         optimizer.step()
     print("Loss ",train_loss)
+    losses.append(train_loss)
