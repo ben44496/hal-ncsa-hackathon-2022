@@ -66,32 +66,32 @@ losses = []
 validation_losses = []
 
 torch.cuda.empty_cache()
-for epoch in range(101):
+for epoch in range(201):
     print("epoch ", epoch)
     train_loss = 0 
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.cuda(), target.cuda()
-        print("Loaded Data")
+#         print("Loaded Data")
         optimizer.zero_grad()
-        print("Optimizer Zero Grad")
+#         print("Optimizer Zero Grad")
         output = model(data)
-        print("Get model output")
+#         print("Get model output")
         loss = loss_fn(output, target)
-        print("Loss calculated")
+#         print("Loss calculated")
         loss.backward()
-        print("loss.backward()")
+#         print("loss.backward()")
         train_loss += loss.item()
         optimizer.step()
-        
+
         if batch_idx % 1 == 0:
             # Horovod: use train_sampler to determine the number of examples in
             # this worker's partition.
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_sampler),
                 100. * batch_idx / len(train_loader), loss.item()))
-        
+
     # Save model every 10 epochs
-    if epoch % 1 == 0:
+    if epoch % 10 == 0:
         torch.save(model.state_dict(),'checkpoints/unet_epoch_%d.pth' % (epoch))
         
 #         rand_sample = torch.randint(0, 11, (1,)) # 0-11 test samples index
