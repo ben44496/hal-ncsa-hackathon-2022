@@ -29,6 +29,9 @@ def get_data(x_features, y_features,datapath):
     N = ncf.variables['ccn_001'].shape[0]
     print(f"Has {N} samples")
     X = torch.empty(len(x_features), N, 39, 157, 157)
+    
+    eps = 1e-20
+    
     for i,name in enumerate(x_features):
         data = ncf.variables[name]
         data = torch.from_numpy(np.array(data))
@@ -36,7 +39,9 @@ def get_data(x_features, y_features,datapath):
         data = data[:,:,1:-1,1:-1]
         # Resize and Standardize 
         data = resizer(data)
-        data = (data - data.mean(dim=0))/data.std(dim=0)
+        std = data.std(dim=0)
+        std += eps*(std<eps)
+        data = (data - data.mean(dim=0))/std
         X[i] = data
     X = torch.permute(X, (1, 0, 2,3,4))
     
@@ -47,9 +52,11 @@ def get_data(x_features, y_features,datapath):
         data = torch.from_numpy(np.array(ncf.variables[name]))
         data = data[:,:,1:-1,1:-1]
         data = resizer(data)
+        std = data.std(dim=0)
+        std += eps*(std<eps)
         y_means[i]=data.mean(dim=0)
-        y_stds[i]=data.std(dim=0)
-        data = (data - data.mean(dim=0))/data.std(dim=0)
+        y_stds[i]=std
+        data = (data - data.mean(dim=0))/std
         Y[i] = data
         
     Y = torch.permute(Y, (1, 0, 2,3,4))
